@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint</title>
+    <script src="main.js" type="module"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* to remove the top and left whitespace */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* To remove the scrollbars */
+
+        .clearBtn {
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+
+        canvas#canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="colors"></div>
+            <div class="eraser"></div>
+        </div>
+        <button class="clearBtn">Clear canvas</button>
+        <canvas id="canvas"></canvas>
+    </div>
+</body>
+
+</html>
