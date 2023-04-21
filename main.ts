@@ -18,11 +18,9 @@ function init(): void {
     let lineWidth: number = 1.0;
     let lineCap: CanvasLineCap = "round";
     let lineJoin: CanvasLineJoin = "round";
+    let historyPointer: number = 0;
     const history: ImageData[] = [];
-    const colors: string[] = ['red', 'green', 'blue'];
-    const colorElements = colors.map(color => {
-        
-    })
+    // const colors: string[] = ['red', 'green', 'blue'];
 
     /** Resize handler */
     window.addEventListener('resize', resizeCanvas);
@@ -36,6 +34,9 @@ function init(): void {
 
     resizeCanvas();
 
+    /** 
+     * Mouse down event, begin drawing
+    */
     document.addEventListener('mousedown', (e: MouseEvent) => {
         canDraw = true;
         const x = e.offsetX;
@@ -44,6 +45,9 @@ function init(): void {
         ctx.beginPath();
     });
 
+    /** 
+     * Mouse move event, only tracked inside canvas, continue drawing
+    */
     canvas.addEventListener('mousemove', (e: MouseEvent) => {
         const x = e.offsetX;
         const y = e.offsetY;
@@ -55,12 +59,18 @@ function init(): void {
         }
     });
 
+    /** 
+     * Mouse up event, finish drawing and update history
+    */
     document.addEventListener('mouseup', () => {
         canDraw = false
         const newImage = getImageFromCanvas(ctx, canvas);
         history.push(newImage);
     });
 
+    /**
+     * Mouse click event, triggers after mouseup. Needed to draw a dot when clicking but not moving
+     */
     canvas.addEventListener('click', (e: MouseEvent) => {
         const x = e.offsetX;
         const y = e.offsetY;
@@ -68,6 +78,9 @@ function init(): void {
         ctx.stroke();
     });
 
+    /** 
+     * Scroll wheel event, increase/decrease line width
+    */
     document.addEventListener('wheel', (e) => {
         const step = 3;
         if (e.deltaY < 0) {
@@ -77,6 +90,9 @@ function init(): void {
         }
     });
 
+    /**
+     * Keyboard event, ctrl + z, go back in history
+     */
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'z' && e.ctrlKey) {
             history.pop();
@@ -86,11 +102,17 @@ function init(): void {
         }
     });
 
-
-    // function animate() {
-    //     requestAnimationFrame(animate);
-    // }
-    // animate();
+    /**
+     * Keyboard event, ctrl + y, go forwards in history
+     */
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'y' && e.ctrlKey) {
+            history.pop();
+            const oldImage = history[history.length - 1];
+            clearCanvas(ctx, canvas);
+            if (oldImage) setImageToCanvas(ctx, oldImage);
+        }
+    });
 }
 
 function getImageFromCanvas(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): ImageData {
