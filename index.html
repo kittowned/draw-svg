@@ -36,16 +36,26 @@
             margin: 0 auto;
             border: 2px solid black;
         }
+
+        .controls {
+            display: inline-block;
+            width: 15%;
+            height: 100%;
+        }
+
+        .colors {
+            
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <button class="clearBtn">Clear canvas</button>
         <div class="controls">
             <div class="colors"></div>
             <div class="eraser"></div>
         </div>
-        <button class="clearBtn">Clear canvas</button>
         <canvas id="canvas"></canvas>
     </div>
 </body>
