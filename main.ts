@@ -1,26 +1,21 @@
-function init(): void {
+function run(): void {
     /**
      * Elements
      */
     const canvas = document.querySelector('#canvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
-    const colorControls = document.querySelector('colors') as HTMLElement;
+    const canvasHistory = document.querySelector('canvas-history') as CanvasHistory;
     const clearBtn = document.querySelector('.clearBtn') as HTMLButtonElement;
     clearBtn.addEventListener('click', () => {
-        clearHistory(history);
+        canvasHistory.clearHistory();
         clearCanvas(ctx, canvas)
     });
 
     /**
      * Initial state
      */
+    const penState: PenState = { lineWidth: 1.0, lineCap: "round", lineJoin: "round" };
     let canDraw: boolean = false;
-    let lineWidth: number = 1.0;
-    let lineCap: CanvasLineCap = "round";
-    let lineJoin: CanvasLineJoin = "round";
-    let historyPointer: number = 0;
-    const history: ImageData[] = [];
-    // const colors: string[] = ['red', 'green', 'blue'];
 
     /**
      *  Resize handler
@@ -39,12 +34,14 @@ function init(): void {
     /** 
      * Mouse down event, begin drawing
      */
-    document.addEventListener('mousedown', (e: MouseEvent) => {
+    canvas.addEventListener('mousedown', (e: MouseEvent) => {
         canDraw = true;
         const x = e.offsetX;
         const y = e.offsetY;
+        setPenState(ctx, penState);
         ctx.moveTo(x, y);
         ctx.beginPath();
+        ctx.lineTo(x, y);
     });
 
     /** 
@@ -54,7 +51,6 @@ function init(): void {
         const x = e.offsetX;
         const y = e.offsetY;
         if (canDraw) {
-            const penState: PenState = { lineWidth, lineCap, lineJoin };
             setPenState(ctx, penState);
             ctx.lineTo(x, y);
             ctx.stroke();
@@ -66,18 +62,7 @@ function init(): void {
      */
     document.addEventListener('mouseup', () => {
         canDraw = false
-        const newImage = getImageFromCanvas(ctx, canvas);
-        history.push(newImage);
-    });
-
-    /**
-     * Mouse click event, triggers after mouseup. Needed to draw a dot when clicking but not moving
-     */
-    canvas.addEventListener('click', (e: MouseEvent) => {
-        const x = e.offsetX;
-        const y = e.offsetY;
-        ctx.lineTo(x, y);
-        ctx.stroke();
+        canvasHistory.addHistory(getImageFromCanvas(ctx, canvas));
     });
 
     /** 
@@ -86,9 +71,9 @@ function init(): void {
     document.addEventListener('wheel', (e) => {
         const step = 3;
         if (e.deltaY < 0) {
-            lineWidth += step;
-        } else if (lineWidth >= step - 1) {
-            lineWidth -= step;
+            penState.lineWidth += step;
+        } else if (penState.lineWidth >= step - 1) {
+            penState.lineWidth -= step;
         }
     });
 
@@ -97,8 +82,8 @@ function init(): void {
      */
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'z' && e.ctrlKey) {
-            history.pop();
-            const oldImage = history[history.length - 1];
+            canvasHistory.back();
+            const oldImage = canvasHistory.getCurrentImage();
             clearCanvas(ctx, canvas);
             if (oldImage) setImageToCanvas(ctx, oldImage);
         }
@@ -109,8 +94,8 @@ function init(): void {
      */
     document.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'y' && e.ctrlKey) {
-            history.pop();
-            const oldImage = history[history.length - 1];
+            canvasHistory.forward();
+            const oldImage = canvasHistory.getCurrentImage();
             clearCanvas(ctx, canvas);
             if (oldImage) setImageToCanvas(ctx, oldImage);
         }
@@ -129,10 +114,6 @@ function clearCanvas(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function clearHistory(history: ImageData[]) {
-    history.length = 0;
-}
-
 function setPenState(ctx: CanvasRenderingContext2D, { lineWidth, lineCap, lineJoin }: PenState): void {
     ctx.lineWidth = lineWidth;
     ctx.lineCap = lineCap;
@@ -145,4 +126,62 @@ interface PenState {
     lineJoin: CanvasLineJoin;
 }
 
-init();
+class CanvasHistory extends HTMLElement {
+    static get observedAttributes() {
+        return ['update'];
+    }
+
+    private _history: ImageData[] = [];
+    private _historyPointer: number = -1;
+
+    addHistory(image: ImageData) {
+        this._history.push(image);
+        this.forward();
+    }
+
+    back() {
+        if (this._historyPointer < 0) return;
+        this._historyPointer--;
+    }
+
+    forward() {
+        if (this._historyPointer >= this._history.length - 1) return;
+        this._historyPointer++;
+    }
+
+    getCurrentImage(): ImageData {
+        return this._history[this._historyPointer];
+    }
+
+    clearHistory() {
+        this._history.length = 0;
+        this._historyPointer = -1;
+    }
+
+    resetHistory() {
+
+    }
+
+    constructor() {
+        super();
+
+        const shadow = this.attachShadow({ mode: 'open' });
+        const wrapper = document.createElement('div');
+        wrapper.setAttribute('class', 'wrapper');
+
+        const style = document.createElement('style');
+
+        style.textContent = ``;
+
+        shadow.appendChild(style);
+        shadow.appendChild(wrapper);
+    }
+
+    attributeChangedCallback() {
+        console.log('attributeChangedCallback called');
+    }
+}
+
+customElements.define('canvas-history', CanvasHistory);
+
+run();
