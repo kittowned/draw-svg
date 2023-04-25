@@ -39,9 +39,9 @@ function run(): void {
         const x = e.offsetX;
         const y = e.offsetY;
         setPenState(ctx, penState);
-        ctx.moveTo(x, y);
         ctx.beginPath();
         ctx.lineTo(x, y);
+        ctx.stroke();
     });
 
     /** 
@@ -51,7 +51,6 @@ function run(): void {
         const x = e.offsetX;
         const y = e.offsetY;
         if (canDraw) {
-            setPenState(ctx, penState);
             ctx.lineTo(x, y);
             ctx.stroke();
         }
