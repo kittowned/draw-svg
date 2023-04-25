@@ -134,6 +134,9 @@ class CanvasHistory extends HTMLElement {
     private _historyPointer: number = -1;
 
     addHistory(image: ImageData) {
+        if (this._historyPointer !== this._history.length - 1) {
+            this._history.splice(this._historyPointer + 1);
+        }
         this._history.push(image);
         this.forward();
     }
